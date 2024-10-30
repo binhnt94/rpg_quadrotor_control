@@ -7,6 +7,7 @@
 #include <ros/ros.h>
 #include <std_msgs/Bool.h>
 #include <Eigen/Dense>
+// #include <position_controller/motors_mixer.h>
 
 namespace rpg_rotors_interface {
 
@@ -59,7 +60,6 @@ class RPGRotorsInterface {
   ros::Subscriber rotors_odometry_sub_;
   ros::Subscriber rpg_control_command_sub_;
   ros::Subscriber motor_speed_sub_;
-  ros::Subscriber arm_interface_sub_;
 
   bool interface_armed_;
   TorquesAndThrust torques_and_thrust_estimate_;
@@ -76,6 +76,7 @@ class RPGRotorsInterface {
   double rotor_thrust_coeff_;
   double mass_;
   double max_rotor_speed_;
+//   MotorsAllocator motors_allocator_;
 };
 
 }  // namespace rpg_rotors_interface

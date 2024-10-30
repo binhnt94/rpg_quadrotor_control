@@ -1,4 +1,4 @@
-#include "position_controller/motors_mixer.hpp"
+#include "position_controller/motors_mixer.h"
 #include <algorithm>
 
 MotorsAllocator::MotorsAllocator() : _roll_factor{}, _pitch_factor{}, _yaw_factor{} {
@@ -25,11 +25,11 @@ void MotorsAllocator::add_motor(Motors motor_num, double roll_pitch_factor_in_de
     );
 }
 
-std::array<double, MotorsAllocator::AP_MOTORS_MAX_NUM_MOTORS> MotorsAllocator::update_motors_allocation(const std::array<double, 4>& des_CTBT) {
+std::array<double, AP_MOTORS_MAX_NUM_MOTORS> MotorsAllocator::update(const std::array<double, 4>& des_CTBT) {
     return output_armed_stabilizing(des_CTBT);
 }
 
-std::array<double, MotorsAllocator::AP_MOTORS_MAX_NUM_MOTORS> MotorsAllocator::output_armed_stabilizing(const std::array<double, 4>& des_CTBT) {
+std::array<double, AP_MOTORS_MAX_NUM_MOTORS> MotorsAllocator::output_armed_stabilizing(const std::array<double, 4>& des_CTBT) {
     std::array<double, AP_MOTORS_MAX_NUM_MOTORS> _thrust_rpyt_out{};
     double throttle_thrust = des_CTBT[0];
     double roll_thrust = des_CTBT[1];
@@ -84,10 +84,8 @@ std::array<double, MotorsAllocator::AP_MOTORS_MAX_NUM_MOTORS> MotorsAllocator::o
     for (int i = 0; i < AP_MOTORS_MAX_NUM_MOTORS; ++i) {
         _thrust_rpyt_out[i] = throttle_thrust_best_rpy + thr_adj + (rpy_scale * _thrust_rpyt_out[i]);
     }
-
-    for (auto& thrust : _thrust_rpyt_out) {
-        thrust *= 300;
-    }
-
+    // for (auto& thrust : _thrust_rpyt_out) {
+    //     thrust *= 300;
+    // }
     return _thrust_rpyt_out;
 }

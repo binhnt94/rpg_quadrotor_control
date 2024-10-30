@@ -20,19 +20,15 @@ RPGRotorsInterface::RPGRotorsInterface(const ros::NodeHandle& nh,
   loadParameters();
 
   rotors_desired_motor_speed_pub_ =
-      nh_.advertise<mav_msgs::Actuators>("command/motor_speed", 1);
+      nh_.advertise<mav_msgs::Actuators>("/delta/command/motor_speed", 1);
 
   rpg_control_command_sub_ =
       nh_.subscribe("control_command", 1,
                     &RPGRotorsInterface::rpgControlCommandCallback, this);
   rotors_odometry_sub_ = nh_.subscribe(
-      "odometry", 1, &RPGRotorsInterface::rotorsOdometryCallback, this);
+      "/delta/odometry_sensor1/odometry", 1, &RPGRotorsInterface::rotorsOdometryCallback, this);
   motor_speed_sub_ = nh_.subscribe(
       "motor_speed", 1, &RPGRotorsInterface::motorSpeedCallback, this);
-  arm_interface_sub_ =
-      nh_.subscribe("rpg_rotors_interface/arm", 1,
-                    &RPGRotorsInterface::armInterfaceCallback, this);
-
   low_level_control_loop_timer_ =
       nh_.createTimer(ros::Duration(1.0 / low_level_control_frequency_),
                       &RPGRotorsInterface::lowLevelControlLoop, this);
@@ -42,7 +38,7 @@ RPGRotorsInterface::~RPGRotorsInterface() {}
 
 void RPGRotorsInterface::lowLevelControlLoop(const ros::TimerEvent& time) {
   mav_msgs::Actuators desired_motor_speed;
-  if (!interface_armed_ || !control_command_.armed) {
+  if (!control_command_.armed) {
     for (int i = 0; i < 4; i++) {
       desired_motor_speed.angular_velocities.push_back(0.0);
     }
@@ -64,7 +60,6 @@ void RPGRotorsInterface::lowLevelControlLoop(const ros::TimerEvent& time) {
       const TorquesAndThrust torques_and_thrust = bodyRateControl(
           rate_cmd,
           quadrotor_common::geometryToEigen(quad_state_.twist.twist.angular));
-
       desired_motor_speed = mixer(torques_and_thrust);
     } else if (control_command_.control_mode ==
                control_command_.ANGULAR_ACCELERATIONS) {
@@ -299,28 +294,28 @@ void RPGRotorsInterface::loadParameters() {
 int main(int argc, char** argv) {
   ros::init(argc, argv, "rpg_rotors_interface");
 
-  // Make Gazebo run correctly
-  std_srvs::Empty srv;
-  bool unpaused = ros::service::call("/gazebo/unpause_physics", srv);
-  unsigned int i = 0;
+  // // Make Gazebo run correctly
+  // std_srvs::Empty srv;
+  // bool unpaused = ros::service::call("/gazebo/unpause_physics", srv);
+  // unsigned int i = 0;
 
-  // Trying to unpause Gazebo for 10 seconds.
-  while (i <= 10 && !unpaused) {
-    ROS_INFO("Wait for 1 second before trying to unpause Gazebo again.");
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    unpaused = ros::service::call("/gazebo/unpause_physics", srv);
-    ++i;
-  }
+  // // Trying to unpause Gazebo for 10 seconds.
+  // while (i <= 10 && !unpaused) {
+  //   ROS_INFO("Wait for 1 second before trying to unpause Gazebo again.");
+  //   std::this_thread::sleep_for(std::chrono::seconds(1));
+  //   unpaused = ros::service::call("/gazebo/unpause_physics", srv);
+  //   ++i;
+  // }
 
-  if (!unpaused) {
-    ROS_FATAL("Could not wake up Gazebo.");
-    return -1;
-  } else {
-    ROS_INFO("Unpaused the Gazebo simulation.");
-  }
+  // if (!unpaused) {
+  //   ROS_FATAL("Could not wake up Gazebo.");
+  //   return -1;
+  // } else {
+  //   ROS_INFO("Unpaused the Gazebo simulation.");
+  // }
 
-  // Wait for 5 seconds to let the Gazebo GUI show up.
-  ros::Duration(5.0).sleep();
+  // // Wait for 5 seconds to let the Gazebo GUI show up.
+  // ros::Duration(5.0).sleep();
 
   // Run the interface
   rpg_rotors_interface::RPGRotorsInterface rpg_rotors_interface;
